@@ -1,0 +1,196 @@
+---
+import '../styles/global.css';
+import { CyberVFX } from '../components/CyberVFX';
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+const pathname = Astro.url.pathname;
+
+const navItems = [
+	{ href: '/', label: 'Centro de Control', icon: 'rect' },
+	{ href: '/dashboard', label: 'Analíticas', icon: 'chart' },
+	{ href: '/caja', label: 'Caja y Finanzas', icon: 'dollar' },
+	{ href: '/empleados', label: 'Lavadores', icon: 'user', category: 'Administración' },
+	{ href: '/servicios', label: 'Productos y Servicios', icon: 'box' },
+	{ href: '/clientes', label: 'Clientes', icon: 'users' },
+];
+
+const isActive = (href: string) => {
+	if (href === '/') return pathname === '/';
+	return pathname.startsWith(href);
+};
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title} | Lavadero Pro-Tech</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+	</head>
+	<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col md:flex-row">
+		<!-- Global VFX Layer (Hand-Crafted) -->
+		<CyberVFX client:load />
+
+		<!-- Sidebar Desktop -->
+		<aside class="hidden md:flex flex-col w-64 bg-slate-950 border-r border-slate-800 h-screen sticky top-0 p-6 z-50">
+			<div class="flex items-center gap-3 mb-12">
+				<div class="w-10 h-10 bg-brand-cyan rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(0,247,255,0.4)]">
+					<span class="text-slate-950 font-black text-2xl">P</span>
+				</div>
+				<div class="flex flex-col">
+					<span class="text-xs font-bold text-brand-cyan tracking-widest uppercase">Lavadero</span>
+					<span class="text-xl font-black text-white tracking-tighter -mt-1">PRO-TECH</span>
+				</div>
+			</div>
+
+			<nav class="flex-1 space-y-2 overflow-y-auto no-scrollbar">
+				<a 
+					href="/" 
+					class={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all group ${
+						isActive('/') 
+							? 'bg-brand-cyan/10 text-brand-cyan border-l-2 border-brand-cyan shadow-[inset_4px_0_15px_rgba(0,247,255,0.05)]' 
+							: 'text-slate-500 hover:bg-slate-900 hover:text-slate-200'
+					}`}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+					Centro de Control
+				</a>
+				<a 
+					href="/dashboard" 
+					class={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all group ${
+						isActive('/dashboard') 
+							? 'bg-brand-cyan/10 text-brand-cyan border-l-2 border-brand-cyan shadow-[inset_4px_0_15px_rgba(0,247,255,0.05)]' 
+							: 'text-slate-500 hover:bg-slate-900 hover:text-slate-200'
+					}`}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+					Analíticas
+				</a>
+				<a 
+					href="/caja" 
+					class={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all group ${
+						isActive('/caja') 
+							? 'bg-brand-cyan/10 text-brand-cyan border-l-2 border-brand-cyan shadow-[inset_4px_0_15px_rgba(0,247,255,0.05)]' 
+							: 'text-slate-500 hover:bg-slate-900 hover:text-slate-200'
+					}`}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+					Caja y Finanzas
+				</a>
+				
+				<div class="pt-6 pb-2">
+					<span class="px-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">Configuración</span>
+				</div>
+
+				<a 
+					href="/empleados" 
+					class={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all group ${
+						isActive('/empleados') 
+							? 'bg-brand-cyan/10 text-brand-cyan border-l-2 border-brand-cyan shadow-[inset_4px_0_15px_rgba(0,247,255,0.05)]' 
+							: 'text-slate-500 hover:bg-slate-900 hover:text-slate-200'
+					}`}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+					Lavadores
+				</a>
+				<a 
+					href="/servicios" 
+					class={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all group ${
+						isActive('/servicios') 
+							? 'bg-brand-cyan/10 text-brand-cyan border-l-2 border-brand-cyan shadow-[inset_4px_0_15px_rgba(0,247,255,0.05)]' 
+							: 'text-slate-500 hover:bg-slate-900 hover:text-slate-200'
+					}`}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+					Productos y Servicios
+				</a>
+				<a 
+					href="/clientes" 
+					class={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all group ${
+						isActive('/clientes') 
+							? 'bg-brand-cyan/10 text-brand-cyan border-l-2 border-brand-cyan shadow-[inset_4px_0_15px_rgba(0,247,255,0.05)]' 
+							: 'text-slate-500 hover:bg-slate-900 hover:text-slate-200'
+					}`}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="19" cy="11" r="3"/></svg>
+					Clientes
+				</a>
+			</nav>
+
+			<div class="mt-auto pt-6 border-t border-slate-900/50">
+				<div class="flex items-center gap-3 p-3 bg-slate-900/40 rounded-xl border border-slate-800/50">
+					<div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+						<span class="text-[10px] font-bold">ADM</span>
+					</div>
+					<div class="flex flex-col">
+						<span class="text-xs font-bold text-white uppercase tracking-tighter">Administrador</span>
+						<span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Lavadero Pro</span>
+					</div>
+				</div>
+			</div>
+		</aside>
+
+		<!-- Bottom Nav Mobile -->
+		<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-950/80 backdrop-blur-xl border-t border-slate-800 p-2 flex justify-around items-center z-50 overflow-x-auto no-scrollbar">
+			<a 
+				href="/" 
+				class={`flex flex-col items-center gap-1 px-3 py-1 transition-all ${
+					isActive('/') ? 'text-brand-cyan' : 'text-slate-500 hover:text-slate-300'
+				}`}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+				<span class="text-[9px] font-bold uppercase">Control</span>
+			</a>
+			<a 
+				href="/dashboard" 
+				class={`flex flex-col items-center gap-1 px-3 py-1 transition-all ${
+					isActive('/dashboard') ? 'text-brand-cyan' : 'text-slate-500 hover:text-slate-300'
+				}`}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+				<span class="text-[9px] font-bold uppercase">Métricas</span>
+			</a>
+			<a 
+				href="/caja" 
+				class={`flex flex-col items-center gap-1 px-3 py-1 transition-all ${
+					isActive('/caja') ? 'text-brand-cyan' : 'text-slate-500 hover:text-slate-300'
+				}`}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+				<span class="text-[9px] font-bold uppercase">Caja</span>
+			</a>
+			<a 
+				href="/empleados" 
+				class={`flex flex-col items-center gap-1 px-3 py-1 transition-all ${
+					isActive('/empleados') ? 'text-brand-cyan' : 'text-slate-500 hover:text-slate-300'
+				}`}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+				<span class="text-[9px] font-bold uppercase">Staff</span>
+			</a>
+			<a 
+				href="/clientes" 
+				class={`flex flex-col items-center gap-1 px-3 py-1 transition-all ${
+					isActive('/clientes') ? 'text-brand-cyan' : 'text-slate-500 hover:text-slate-300'
+				}`}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="19" cy="11" r="3"/></svg>
+				<span class="text-[9px] font-bold uppercase">Clientes</span>
+			</a>
+		</nav>
+
+		<!-- Main Content Area -->
+		<main class="flex-1 w-full max-w-full overflow-x-hidden p-4 md:p-8 lg:p-12 mb-20 md:mb-0">
+			<slot />
+		</main>
+	</body>
+</html>

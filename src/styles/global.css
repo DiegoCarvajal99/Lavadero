@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-cyan: #00f7ff;
+  --color-brand-blue: #0066ff;
+  --color-brand-green: #00ff9d;
+  --color-brand-danger: #ff003c;
+  --color-brand-gold: #ffcc00;
+}
+
+@layer base {
+  body {
+    @apply antialiased bg-slate-950 text-slate-100 selection:bg-brand-cyan/30;
+  }
+}
+
+@layer components {
+  /* --- Premium Design Tokens --- */
+  
+  .glass-panel {
+    @apply bg-slate-900/40 backdrop-blur-xl border border-slate-800/50 rounded-3xl;
+  }
+
+  .cyber-card {
+    @apply bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl 
+           transition-all duration-300 hover:border-slate-700 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)];
+  }
+
+  .cyber-button-primary {
+    @apply bg-brand-cyan text-slate-950 font-black px-6 py-3 rounded-xl transition-all 
+           hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,247,255,0.4)] active:scale-95 
+           disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-tight;
+  }
+
+  .cyber-button-gold {
+    @apply bg-brand-gold text-slate-950 font-black px-6 py-3 rounded-xl transition-all 
+           hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(255,204,0,0.4)] active:scale-95 
+           disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-tight;
+  }
+
+  .cyber-button-secondary {
+    @apply bg-slate-900 text-slate-400 font-bold px-6 py-3 rounded-xl border border-slate-800 transition-all 
+           hover:bg-slate-800 hover:text-white active:scale-95 uppercase tracking-tighter;
+  }
+
+  /* Status Accents (Glows) */
+  .glow-cyan { @apply shadow-[0_0_15px_rgba(0,247,255,0.15)]; }
+  .glow-green { @apply shadow-[0_0_15px_rgba(0,255,157,0.15)]; }
+  .glow-gold { @apply shadow-[0_0_15px_rgba(255,204,0,0.15)]; }
+
+  /* New: Tactical Utility Classes */
+  .stat-badge {
+    @apply px-2 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase;
+  }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Inputs (Premium) */
+  .cyber-input-premium {
+    @apply w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3
+           text-white placeholder:text-slate-800 transition-all outline-none
+           focus:border-brand-cyan/50 focus:shadow-[0_0_20px_rgba(0,247,255,0.1)];
+  }
+
+  .cyber-select-premium {
+    @apply cursor-pointer bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3
+           text-white outline-none focus:border-brand-cyan/50 transition-all appearance-none
+           text-sm font-bold;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300f7ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+  }
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(0, 247, 255, 0.05), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite linear;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
