@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { UserPlus, Users, Phone, MapPin, Power, Trash2, Loader2, Save, X, Plus, Edit3, Shield, Contact } from 'lucide-react';
+import { Users, UserPlus, Search, Edit3, Trash2, X, Plus, Save, Loader2, MessageCircle, Shield } from 'lucide-react';
 import { playVFX, resolveVFX, cancelVFX } from './CyberVFX';
 import { CyberLoader } from './CyberLoader';
 import type { Employee } from '../types';
@@ -150,7 +150,7 @@ export const GestionEmpleados: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-800/50">
               {employees.map(emp => (
-                <tr key={emp.id} className={`group hover:bg-slate-900/40 transition-all ${!emp.activo ? 'opacity-30' : ''}`}>
+                <tr key={emp.id} className="group hover:bg-slate-900/40 transition-all border-b border-slate-900/50">
                   <td className="p-4">
                     <span className="text-[10px] font-black text-brand-cyan/40 uppercase block leading-none">{emp.tipoDocumento}</span>
                     <span className="font-mono text-slate-300 tracking-wider transition-colors group-hover:text-brand-cyan">{emp.documento}</span>
@@ -167,15 +167,44 @@ export const GestionEmpleados: React.FC = () => {
                     </div>
                   </td>
                   <td className="p-4 text-center">
-                    <button onClick={() => toggleStatus(emp.id, emp.activo, emp.nombre)} 
-                      className={`p-2 rounded-lg border transition-all ${emp.activo ? 'text-brand-green border-brand-green/20' : 'text-slate-700 border-slate-800'}`}>
-                      <Power className="w-4 h-4" />
-                    </button>
+                    <div className="flex justify-center">
+                      <div 
+                        onClick={() => toggleStatus(emp.id!, emp.activo, emp.nombre)} 
+                        className={`w-10 h-5 rounded-full relative cursor-pointer transition-all duration-500 border ${
+                          emp.activo ? 'bg-brand-green/10 border-brand-green/30 shadow-[0_0_10px_rgba(0,255,157,0.1)]' : 'bg-brand-danger/10 border-brand-danger/30'
+                        }`}
+                      >
+                        <div className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full transition-all duration-500 ${
+                          emp.activo ? 'right-1 bg-brand-green shadow-[0_0_8px_#00ff9d]' : 'left-1 bg-brand-danger shadow-[0_0_8px_#ff003c]'
+                        }`} />
+                      </div>
+                    </div>
                   </td>
                   <td className="p-4 text-center">
                     <div className="flex justify-center gap-2">
-                       <button onClick={() => openEdit(emp)} className="p-2 rounded-lg bg-slate-900 hover:bg-brand-cyan hover:text-slate-950 text-slate-400 border border-slate-800 transition-all"><Edit3 className="w-4 h-4" /></button>
-                       <button onClick={() => deleteEmployee(emp.id, emp.nombre)} className="p-2 rounded-lg bg-slate-900 hover:bg-brand-danger hover:text-white text-slate-700 border border-slate-800 transition-all"><Trash2 className="w-4 h-4" /></button>
+                      <a 
+                        href={`https://wa.me/57${emp.telefono.replace(/\D/g, '')}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-slate-900 hover:bg-brand-green hover:text-slate-950 text-brand-green border border-brand-green/20 transition-all shadow-[0_0_10px_rgba(0,255,157,0.1)]"
+                        title="Contactar por WhatsApp"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </a>
+                      <button 
+                        onClick={() => openEdit(emp)} 
+                        className="p-2 rounded-lg bg-slate-900 hover:bg-brand-cyan hover:text-slate-950 text-brand-cyan border border-brand-cyan/20 transition-all"
+                        title="Editar Registro"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => deleteEmployee(emp.id!, emp.nombre)} 
+                        className="p-2 rounded-lg bg-slate-900 hover:bg-brand-danger hover:text-white text-brand-danger border border-brand-danger/20 transition-all"
+                        title="Eliminar Registro"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -188,7 +217,7 @@ export const GestionEmpleados: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={handleCancel}></div>
-          <div className="relative cyber-card w-full max-w-lg bg-slate-900 border-brand-cyan/20 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="relative cyber-card w-full max-w-lg bg-slate-900 border-brand-cyan/20 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
             <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-gradient-to-r from-slate-900 to-slate-950">
                <h3 className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
                  <Shield className="w-5 h-5 text-brand-cyan" />
@@ -197,35 +226,37 @@ export const GestionEmpleados: React.FC = () => {
                <button onClick={handleCancel} className="p-2 text-slate-500 hover:text-white"><X className="w-6 h-6" /></button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div className="tactical-group">
-                <label className="cyber-label-tactical">Validación de Identidad</label>
-                <div className="grid grid-cols-3 gap-3">
-                  <select value={tipoDocumento} onChange={(e) => setTipoDocumento(e.target.value)} className="cyber-select-premium col-span-1">
-                    <option value="CC">CC</option><option value="CE">CE</option><option value="NIT">NIT</option>
-                  </select>
-                  <input type="text" value={documento} onChange={(e) => setDocumento(e.target.value)} className="cyber-input-premium col-span-2 font-mono" placeholder="NRO ID" required />
-                </div>
-              </div>
-
-              <div className="tactical-group">
-                <label className="cyber-label-tactical">Datos Personales</label>
-                <div className="space-y-4">
-                  <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="cyber-input-premium text-lg font-black" placeholder="NOMBRE COMPLETO" required />
-                  <div className="grid grid-cols-2 gap-3">
-                    <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className="cyber-input-premium" placeholder="TELÉFONO" />
-                    <input type="text" value={direccion} onChange={(e) => setDireccion(e.target.value)} className="cyber-input-premium" placeholder="DIRECCIÓN" />
+            <div className="p-6 max-h-[80vh] overflow-y-auto no-scrollbar">
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="tactical-group">
+                  <label className="cyber-label-tactical">Validación de Identidad</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <select value={tipoDocumento} onChange={(e) => setTipoDocumento(e.target.value)} className="cyber-select-premium col-span-1">
+                      <option value="CC">CC</option><option value="CE">CE</option><option value="NIT">NIT</option>
+                    </select>
+                    <input type="number" value={documento} onChange={(e) => setDocumento(e.target.value.toUpperCase())} className="cyber-input-premium col-span-2 font-mono uppercase" placeholder="NRO ID" required />
                   </div>
                 </div>
-              </div>
 
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={handleCancel} className="flex-1 cyber-button-secondary uppercase">Cancelar</button>
-                <button type="submit" disabled={saving} className="flex-[2] cyber-button-primary py-4 uppercase">
-                  {saving ? <CyberLoader size={24} className="mx-auto" /> : <>{editingId ? 'Actualizar' : 'Guardar'}</>}
-                </button>
-              </div>
-            </form>
+                <div className="tactical-group">
+                  <label className="cyber-label-tactical">Datos Personales</label>
+                  <div className="space-y-4">
+                    <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value.toUpperCase())} className="cyber-input-premium text-lg font-black uppercase" placeholder="NOMBRE COMPLETO" required />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input type="number" value={telefono} onChange={(e) => setTelefono(e.target.value.slice(0, 10))} className="cyber-input-premium" placeholder="TELÉFONO" />
+                      <input type="text" value={direccion} onChange={(e) => setDireccion(e.target.value.toUpperCase())} className="cyber-input-premium uppercase" placeholder="DIRECCIÓN" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={handleCancel} className="flex-1 cyber-button-secondary uppercase">Cancelar</button>
+                  <button type="submit" disabled={saving} className="flex-[2] cyber-button-primary py-4 uppercase">
+                    {saving ? <CyberLoader size={24} className="mx-auto" /> : <>{editingId ? 'Actualizar' : 'Guardar'}</>}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -233,7 +264,7 @@ export const GestionEmpleados: React.FC = () => {
       {confirmModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setConfirmModal(null)}></div>
-          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center">
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center animate-modal-entry">
             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20">
                <Trash2 className="w-8 h-8 text-red-500" />
             </div>

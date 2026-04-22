@@ -48,7 +48,7 @@ export const CardVehiculo: React.FC<Props> = ({ order, onUpdateStatus, onDelete,
   return (
     <div 
       onClick={() => onClick?.()}
-      className={`cyber-card p-4 group ${statusStyles[order.estado] || statusStyles.espera} relative overflow-hidden flex flex-col h-full min-h-[160px] transition-all hover:scale-[1.02] border focus-within:ring-2 focus-within:ring-brand-cyan`}
+      className={`cyber-card p-4 group ${statusStyles[order.estado] || statusStyles.espera} relative overflow-hidden flex flex-col h-full min-h-[160px] transition-premium hover:scale-[1.02] border focus-within:ring-2 focus-within:ring-brand-cyan shadow-2xl`}
     >
       <div className="flex justify-between items-start mb-2 relative z-10">
         <div className="flex items-center gap-2">

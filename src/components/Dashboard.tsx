@@ -165,7 +165,10 @@ export const Dashboard: React.FC = () => {
       o.clienteNombre?.toUpperCase().includes(searchTerm.toUpperCase());
     
     if (viewMode === 'lavadero') return matchesSearch && (!o.idTipoOperacion || o.idTipoOperacion === 'lavadero');
-    return matchesSearch && o.idTipoOperacion === 'tienda';
+    return matchesSearch && (
+      o.idTipoOperacion === 'tienda' || 
+      o.adicionales?.some(ad => ad.categoria === 'articulo' && ad.pagado)
+    );
   });
 
   const getColOrders = (status: string) => filteredOrders.filter(o => o.estado === status);
@@ -175,7 +178,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto select-none">
+    <div className="space-y-6 max-w-[1600px] mx-auto select-none animate-panel-entry">
       
       {/* HEADER: MODE & ACTIONS */}
       <div className="flex flex-col lg:flex-row gap-4 items-center justify-between glass-panel p-4 border border-slate-800">
@@ -252,9 +255,9 @@ export const Dashboard: React.FC = () => {
            { label: 'Eficiencia', value: `${orders.length > 0 ? Math.round((filteredOrders.filter(o => o.estado === 'pagado' || o.estado === 'finalizado').length / orders.length) * 100) : 0}%`, color: 'text-slate-500' }
          ] : [
            { label: 'Total Ventas', value: filteredOrders.length, color: 'text-white' },
-           { label: 'Artículos Vendidos', value: filteredOrders.reduce((acc, o) => acc + (o.adicionales?.reduce((a, ad) => a + (ad.cantidad || 0), 0) || 0), 0), color: 'text-brand-gold' },
-           { label: 'Caja Día', value: `$${filteredOrders.filter(o => !o.pagoCredito).reduce((acc, o) => acc + (o.total || 0), 0).toLocaleString()}`, color: 'text-brand-cyan' },
-           { label: 'Ingreso Total', value: `$${filteredOrders.reduce((acc, o) => acc + (o.total || 0), 0).toLocaleString()}`, color: 'text-white' }
+           { label: 'Artículos Vendidos', value: filteredOrders.reduce((acc, o) => acc + (o.adicionales?.filter(ad => ad.categoria === 'articulo' && ad.pagado).reduce((a, ad) => a + (ad.cantidad || 0), 0) || 0), 0), color: 'text-brand-gold' },
+           { label: 'Caja Día (Art.)', value: `$${filteredOrders.filter(o => !o.pagoCredito).reduce((acc, o) => acc + (o.adicionales?.filter(ad => ad.categoria === 'articulo' && ad.pagado).reduce((a, ad) => a + (ad.precio * (ad.cantidad || 1)), 0) || 0), 0).toLocaleString()}`, color: 'text-brand-cyan' },
+           { label: 'Valor en Inventario', value: `$${filteredOrders.reduce((acc, o) => acc + (o.adicionales?.filter(ad => ad.categoria === 'articulo' && ad.pagado).reduce((a, ad) => a + (ad.precio * (ad.cantidad || 1)), 0) || 0), 0).toLocaleString()}`, color: 'text-white' }
          ]).map((stat, i) => (
            <div key={i} className="glass-panel p-3 border border-slate-800/50">
               <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">{stat.label}</p>
@@ -264,7 +267,8 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* CONTENT: DASHBOARD VS TIENDA TABLE */}
-      {viewMode === 'lavadero' ? (
+      <div key={viewMode} className="animate-panel-entry">
+        {viewMode === 'lavadero' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {['espera', 'proceso', 'listo', 'pagado'].map(col => (
              <div key={col} className="space-y-4">
@@ -297,7 +301,12 @@ export const Dashboard: React.FC = () => {
                  {filteredOrders.map(sale => (
                     <tr key={sale.id} className="hover:bg-slate-900/40 transition-all group">
                        <td className="p-5">
-                          <span className="text-[10px] font-mono font-black text-white">#{sale.id?.slice(-6).toUpperCase()}</span>
+                          <div className="flex flex-col">
+                             <span className="text-[10px] font-mono font-black text-white">#{sale.id?.slice(-6).toUpperCase()}</span>
+                             {sale.idTipoOperacion === 'lavadero' && (
+                               <span className="text-[7px] font-black text-brand-cyan bg-brand-cyan/10 border border-brand-cyan/20 px-1.5 py-0.5 rounded mt-1 w-fit">PATIO</span>
+                             )}
+                          </div>
                        </td>
                        <td className="p-5">
                           <p className="text-[11px] font-black text-white uppercase">{sale.clienteNombre || 'CLIENTE ANONIMO'}</p>
@@ -305,13 +314,26 @@ export const Dashboard: React.FC = () => {
                        </td>
                        <td className="p-5">
                           <div className="flex flex-wrap gap-2">
-                             {sale.adicionales?.map((ad, idx) => (
+                             {(sale.adicionales?.filter(ad => ad.categoria === 'articulo' && ad.pagado)
+                                .reduce((acc, curr) => {
+                                   const existing = acc.find((a:any) => a.nombre === curr.nombre);
+                                   if (existing) existing.cantidad += curr.cantidad;
+                                   else acc.push({ ...curr });
+                                   return acc;
+                                }, [] as any[]) || []).map((ad:any, idx:number) => (
                                 <span key={idx} className="text-[9px] font-black text-slate-400 bg-slate-900 border border-slate-800 px-2 py-1 rounded-md">{ad.nombre} x{ad.cantidad}</span>
                              ))}
                           </div>
                        </td>
                        <td className="p-5 text-right">
-                          <span className="text-base font-black text-white tabular-nums">${sale.total.toLocaleString()}</span>
+                          <div className="flex flex-col items-end">
+                             <span className="text-base font-black text-white tabular-nums">
+                               ${ (sale.idTipoOperacion === 'tienda' ? sale.total : (sale.adicionales?.filter(ad => ad.categoria === 'articulo' && ad.pagado).reduce((a, b) => a + (b.precio * b.cantidad), 0) || 0)).toLocaleString() }
+                             </span>
+                             {sale.idTipoOperacion === 'lavadero' && (
+                               <span className="text-[8px] text-slate-600 font-bold uppercase">Pagado en Patio</span>
+                             )}
+                          </div>
                        </td>
                        <td className="p-5 text-center">
                           <span className={`text-[8px] font-black px-3 py-1 rounded-full border ${sale.pagoCredito ? 'border-brand-cyan text-brand-cyan' : 'border-brand-green text-brand-green'}`}>
@@ -331,13 +353,14 @@ export const Dashboard: React.FC = () => {
               </tbody>
            </table>
         </div>
-      )}
+        )}
+      </div>
 
       {/* Entry Modal */}
       {isEntryModalOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setIsEntryModalOpen(false)}></div>
-          <div className="relative w-full max-w-4xl max-h-[95vh] overflow-y-auto no-scrollbar rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-800">
+          <div className="relative w-full max-w-4xl max-h-[95vh] overflow-y-auto no-scrollbar rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-800 animate-in fade-in zoom-in-95 duration-300">
              <FormularioIngreso 
                onSuccess={() => setIsEntryModalOpen(false)} 
                onClose={() => setIsEntryModalOpen(false)}
@@ -354,7 +377,7 @@ export const Dashboard: React.FC = () => {
       {isCalendarOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsCalendarOpen(false)}></div>
-           <div className="relative bg-slate-950 border border-slate-800 p-8 rounded-[2rem] shadow-4xl animate-in zoom-in-95">
+           <div className="relative bg-slate-950 border border-slate-800 p-8 rounded-[2rem] shadow-4xl animate-in fade-in zoom-in-95 duration-300">
               <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-6">Selección Operativa de Fecha</h4>
               <input 
                 type="date" 
@@ -369,7 +392,7 @@ export const Dashboard: React.FC = () => {
       {orderToDelete && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setOrderToDelete(null)}></div>
-          <div className="relative w-full max-w-sm glass-panel p-8 rounded-[2rem] border border-red-500/20 text-center animate-in scale-in duration-300">
+          <div className="relative w-full max-w-sm glass-panel p-8 rounded-[2rem] border border-red-500/20 text-center animate-in fade-in zoom-in-95 duration-300">
             <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-6" />
             <h3 className="text-xl font-black text-white uppercase mb-2">Eliminar Registro</h3>
             <p className="text-[10px] text-slate-500 font-bold uppercase mb-8">Esta acción es permanente e irreversible.</p>
@@ -384,7 +407,7 @@ export const Dashboard: React.FC = () => {
       {confirmModal && (
         <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" onClick={() => setConfirmModal(null)}></div>
-          <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-[2rem] p-10 text-center">
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-[2rem] p-10 text-center animate-in fade-in zoom-in-95 duration-300">
             <h3 className="text-xl font-black text-white uppercase mb-4">{confirmModal.title}</h3>
             <p className="text-xs text-slate-500 mb-8 uppercase font-bold tracking-widest">{confirmModal.message}</p>
             <div className="flex gap-4">

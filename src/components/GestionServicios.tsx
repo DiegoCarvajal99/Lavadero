@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot, increment } from 'firebase/firestore';
-import { ListPlus, Package, DollarSign, Percent, Trash2, Save, X, Plus, PlusCircle, Loader2, Edit3, Settings, Car, RefreshCcw, Search } from 'lucide-react';
+import { ListPlus, Package, DollarSign, Percent, Trash2, Save, X, Plus, PlusCircle, Loader2, Edit3, Settings, Car, RefreshCcw, Search, Star, Layers } from 'lucide-react';
 import { MotorcycleIcon } from './Icons';
 import { playVFX, resolveVFX, cancelVFX } from './CyberVFX';
 import { CyberLoader } from './CyberLoader';
@@ -18,8 +18,9 @@ export const GestionServicios: React.FC = () => {
   const [nombre, setNombre] = useState('');
   const [precio, setPrecio] = useState('');
   const [comisionPerc, setComisionPerc] = useState('35');
-  const [tipoVehiculo, setTipoVehiculo] = useState<VehicleType | 'ambos'>('ambos');
+  const [tipoVehiculo, setTipoVehiculo] = useState<VehicleType | 'ambos' | ''>('');
   const [esAdicional, setEsAdicional] = useState(false);
+  const [esPrincipal, setEsPrincipal] = useState(false);
   const [stock, setStock] = useState('0');
   const [searchTerm, setSearchTerm] = useState('');
   const [modalSearch, setModalSearch] = useState('');
@@ -51,6 +52,7 @@ export const GestionServicios: React.FC = () => {
     setComisionPerc((svc.comision * 100).toFixed(0));
     setTipoVehiculo(svc.tipoVehiculo || 'ambos');
     setEsAdicional(!!svc.esAdicional);
+    setEsPrincipal(svc.esPrincipal !== undefined ? svc.esPrincipal : !svc.esAdicional);
     setStock('0'); // For adding more
     setModalSearch('');
     setIsModalOpen(true);
@@ -61,8 +63,9 @@ export const GestionServicios: React.FC = () => {
     setEditingId(null);
     setNombre('');
     setPrecio('');
-    setTipoVehiculo('ambos');
+    setTipoVehiculo('');
     setEsAdicional(false);
+    setEsPrincipal(false);
     setStock('0');
   };
 
@@ -94,8 +97,9 @@ export const GestionServicios: React.FC = () => {
         nombre: nombre.toUpperCase(),
         precio: Number(precio),
         comision: activeTab === 'articulo' ? 0 : Number(comisionPerc) / 100,
-        tipoVehiculo: tipoVehiculo,
+        tipoVehiculo: tipoVehiculo || 'ambos',
         esAdicional: activeTab === 'articulo' ? true : esAdicional,
+        esPrincipal: activeTab === 'articulo' ? false : esPrincipal,
         categoria: activeTab,
         stock: editingId ? increment(Number(stock)) : Number(stock)
       };
@@ -213,7 +217,7 @@ export const GestionServicios: React.FC = () => {
             type="text" 
             placeholder="BUSCAR ITEM..." 
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
             className="cyber-input-premium pl-10 py-2.5 text-[10px] uppercase tracking-widest font-black"
            />
         </div>
@@ -304,7 +308,7 @@ export const GestionServicios: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={handleCancel}></div>
-          <div className="relative cyber-card w-full max-w-md bg-slate-900 border-brand-cyan/20 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="relative cyber-card w-full max-w-md bg-slate-900 border-brand-cyan/20 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
             <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-gradient-to-r from-slate-900 to-slate-950">
                <h3 className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
                  <Settings className="w-5 h-5 text-brand-cyan" />
@@ -313,12 +317,12 @@ export const GestionServicios: React.FC = () => {
                 <button onClick={handleCancel} className="text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
             </div>
             
-            <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto no-scrollbar">
-              <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="p-6 max-h-[80vh] overflow-y-auto no-scrollbar">
+              <form onSubmit={handleSubmit} className="space-y-3">
               <div className="tactical-group relative">
                 <div className="flex justify-between items-center mb-1">
                   <label className="cyber-label-tactical mb-0">Identificación del {activeTab === 'articulo' ? 'Producto' : 'Servicio'}</label>
-                  {!editingId && <span className="text-[7px] font-black text-brand-cyan/50 tracking-widest uppercase">Búsqueda Inteligente Activa</span>}
+                  {!editingId && activeTab === 'articulo' && <span className="text-[7px] font-black text-brand-cyan/50 tracking-widest uppercase">Búsqueda Inteligente Activa</span>}
                 </div>
                 <input 
                   type="text" 
@@ -329,12 +333,12 @@ export const GestionServicios: React.FC = () => {
                   }} 
                   onFocus={() => setShowSuggestions(true)}
                   placeholder="EJ. POLICHADO MANUAL" 
-                  className="cyber-input-premium font-black text-base" 
+                  className="cyber-input-premium font-black text-base uppercase" 
                   required 
                 />
                 
                 {/* Suggestions Dropdown */}
-                {!editingId && showSuggestions && nombre.length > 1 && (
+                {!editingId && activeTab === 'articulo' && showSuggestions && nombre.length > 1 && (
                   <div className="absolute z-[110] left-0 right-0 mt-1 bg-slate-950 border border-slate-800 rounded-xl shadow-2xl max-h-40 overflow-y-auto no-scrollbar">
                      {services
                         .filter(s => s.categoria === activeTab && s.nombre.toLowerCase().includes(nombre.toLowerCase()))
@@ -362,7 +366,16 @@ export const GestionServicios: React.FC = () => {
                    <label className="cyber-label-tactical">Precio Venta</label>
                    <div className="relative">
                       <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-cyan" />
-                      <input type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} className={`cyber-input-premium pl-10 font-mono ${activeTab === 'articulo' ? 'border-brand-gold/30 focus:border-brand-gold' : ''}`} required />
+                      <input 
+                        type="text" 
+                        value={precio ? Number(precio).toLocaleString('es-CO') : ''} 
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          setPrecio(val);
+                        }}
+                        className={`cyber-input-premium pl-10 font-mono ${activeTab === 'articulo' ? 'border-brand-gold/30 focus:border-brand-gold' : ''}`} 
+                        required 
+                      />
                    </div>
                 </div>
                 <div className="col-span-1">
@@ -409,23 +422,28 @@ export const GestionServicios: React.FC = () => {
               {activeTab === 'servicio' && (
                 <div className="tactical-group">
                   <label className="cyber-label-tactical">Compatibilidad de Vehículo</label>
-                  <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="grid grid-cols-2 gap-2 mt-2">
                     {[
-                      { id: 'carro', label: 'CARRO', icon: Car, color: 'text-brand-cyan', bg: 'hover:bg-brand-cyan/20 border-brand-cyan/20' },
-                      { id: 'moto', label: 'MOTO', icon: MotorcycleIcon, color: 'text-brand-gold', bg: 'hover:bg-brand-gold/20 border-brand-gold/20' },
-                      { id: 'ambos', label: 'AMBOS', icon: Package, color: 'text-white', bg: 'hover:bg-white/10 border-white/10' }
-                    ].map(item => (
-                      <div 
-                        key={item.id}
-                        onClick={() => setTipoVehiculo(item.id as any)}
-                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer group ${
-                          tipoVehiculo === item.id ? 'bg-slate-800 border-brand-cyan shadow-[0_0_15px_rgba(0,247,255,0.15)]' : 'bg-slate-950/20 border-slate-800'
-                        }`}
-                      >
-                          <item.icon size={18} className={`mb-1.5 ${tipoVehiculo === item.id ? item.color : 'text-slate-600 opacity-40'} transition-colors duration-300`} />
-                          <span className={`text-[8px] font-black tracking-widest ${tipoVehiculo === item.id ? 'text-white' : 'text-slate-700'}`}>{item.label}</span>
-                      </div>
-                    ))}
+                      { id: 'carro', label: 'CARRO', icon: Car, color: 'text-brand-cyan' },
+                      { id: 'moto', label: 'MOTO', icon: MotorcycleIcon, color: 'text-brand-gold' }
+                    ].map(item => {
+                      const isActive = tipoVehiculo === item.id;
+                      return (
+                        <div 
+                          key={item.id}
+                          onClick={() => {
+                            if (tipoVehiculo === item.id) setTipoVehiculo('');
+                            else setTipoVehiculo(item.id as any);
+                          }}
+                          className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer group ${
+                            isActive ? 'bg-slate-800 border-brand-cyan shadow-[0_0_15px_rgba(0,247,255,0.15)]' : 'bg-slate-950/20 border-slate-800'
+                          }`}
+                        >
+                            <item.icon size={18} className={`mb-1.5 ${isActive ? item.color : 'text-slate-600 opacity-40'} transition-colors duration-300`} />
+                            <span className={`text-[8px] font-black tracking-widest ${isActive ? 'text-white' : 'text-slate-700'}`}>{item.label}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -433,16 +451,33 @@ export const GestionServicios: React.FC = () => {
               {activeTab === 'servicio' && (
                 <div className="tactical-group pt-2">
                   <label className="cyber-label-tactical">Tipo de Categoría</label>
-                  <select 
-                      value={esAdicional ? 'adicional' : 'principal'}
-                      onChange={(e) => setEsAdicional(e.target.value === 'adicional')}
-                      className="cyber-select-premium w-full text-xs font-bold py-3"
-                  >
-                      <option value="principal">SERVICIO PRINCIPAL (EN LISTA SELECTORA)</option>
-                      <option value="adicional">SERVICIO ADICIONAL (BUSCADOR TÁCTICO)</option>
-                  </select>
-                  <p className="text-[7px] font-bold text-slate-600 uppercase tracking-tight mt-2">
-                    Los principales aparecen en la selección central. Los adicionales solo en el buscador de extras.
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {[
+                      { id: 'principal', label: 'PRINCIPAL', icon: Star, color: 'text-brand-cyan', active: esPrincipal },
+                      { id: 'adicional', label: 'ADICIONAL', icon: Layers, color: 'text-brand-gold', active: esAdicional }
+                    ].map(item => (
+                      <div 
+                        key={item.id}
+                        onClick={() => {
+                          if (item.id === 'principal') {
+                            if (esPrincipal) setEsPrincipal(false);
+                            else { setEsPrincipal(true); setEsAdicional(false); }
+                          } else {
+                            if (esAdicional) setEsAdicional(false);
+                            else { setEsAdicional(true); setEsPrincipal(false); }
+                          }
+                        }}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer group ${
+                          item.active ? 'bg-slate-800 border-brand-cyan shadow-[0_0_15px_rgba(0,247,255,0.15)]' : 'bg-slate-950/20 border-slate-800'
+                        }`}
+                      >
+                          <item.icon size={18} className={`mb-1.5 ${item.active ? item.color : 'text-slate-600 opacity-40'} transition-colors duration-300`} />
+                          <span className={`text-[8px] font-black tracking-widest ${item.active ? 'text-white' : 'text-slate-700'}`}>{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[7px] font-bold text-slate-600 uppercase tracking-tight mt-3">
+                    Los principales aparecen en la selección central. Los adicionales solo en el buscador de extras. Puede seleccionar ambos.
                   </p>
                 </div>
               )}
@@ -470,7 +505,7 @@ export const GestionServicios: React.FC = () => {
       {confirmModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setConfirmModal(null)}></div>
-          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center">
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center animate-modal-entry">
             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20">
                <Trash2 className="w-8 h-8 text-red-500" />
             </div>

@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { CyberVFX } from '../components/CyberVFX';
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
 	title: string;
@@ -35,6 +36,7 @@ const isActive = (href: string) => {
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+		<ClientRouter />
 	</head>
 	<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col md:flex-row">
 		<!-- Global VFX Layer (Hand-Crafted) -->

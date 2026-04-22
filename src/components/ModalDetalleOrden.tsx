@@ -309,7 +309,7 @@ export const ModalDetalleOrden: React.FC<Props> = ({ order, isOpen, onClose, onP
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in duration-300">
       <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={onClose}></div>
       
-      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.6)] animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
         {/* Header Header */}
         <div className="bg-slate-950 p-6 border-b border-slate-800 flex justify-between items-start">
           <div className="flex items-center gap-4">
@@ -517,27 +517,47 @@ export const ModalDetalleOrden: React.FC<Props> = ({ order, isOpen, onClose, onP
                         </div>
                      )}
                      {selectedSvcForQty && (
-                        <div className="absolute z-[60] left-0 right-0 mt-1 bg-slate-950 border border-brand-gold/50 rounded-2xl p-5 shadow-2xl space-y-4 animate-in slide-in-from-top-2">
-                           <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-black text-brand-gold uppercase tracking-[0.2em]">{selectedSvcForQty.nombre}</span>
-                              <button onClick={() => setSelectedSvcForQty(null)}><X size={16} className="text-slate-600" /></button>
-                           </div>
-                           <div className="flex items-center gap-4">
-                              <button 
-                                 onClick={() => setTempQty(Math.max(1, tempQty - 1))}
-                                 className="w-10 h-10 bg-slate-900 rounded-xl border border-slate-800 text-white font-black hover:bg-brand-gold hover:text-slate-900 transition-all"
-                              >-</button>
-                              <span className="text-xl font-black text-white font-mono w-10 text-center">{tempQty}</span>
-                              <button 
-                                 onClick={() => setTempQty(tempQty + 1)}
-                                 className="w-10 h-10 bg-slate-900 rounded-xl border border-slate-800 text-white font-black hover:bg-brand-gold hover:text-slate-900 transition-all"
-                              >+</button>
-                              <button 
-                                 onClick={() => executeAdd(selectedSvcForQty, tempQty)}
-                                 className="flex-1 py-3 bg-brand-gold text-slate-950 rounded-xl font-black text-[10px] uppercase tracking-widest"
-                              >
-                                CONFIRMAR x{tempQty}
-                              </button>
+                        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
+                           <div className="relative w-full max-w-sm bg-slate-950 border-2 border-brand-gold/50 rounded-[2.5rem] p-8 shadow-[0_0_50px_rgba(255,204,0,0.2)] space-y-6 animate-in zoom-in-95 duration-200">
+                              <div className="flex justify-between items-start">
+                                 <div>
+                                    <span className="text-[10px] font-black text-brand-gold uppercase tracking-[0.3em] block mb-1">Confirmar Adición</span>
+                                    <h4 className="text-xl font-black text-white uppercase tracking-tight leading-none">{selectedSvcForQty.nombre}</h4>
+                                 </div>
+                                 <button onClick={() => setSelectedSvcForQty(null)} className="p-2 hover:bg-slate-900 rounded-full transition-colors">
+                                    <X size={20} className="text-slate-500" />
+                                 </button>
+                              </div>
+
+                              <div className="flex flex-col items-center gap-6 py-4">
+                                 <div className="flex items-center gap-6">
+                                    <button 
+                                       onClick={() => setTempQty(Math.max(1, tempQty - 1))}
+                                       className="w-14 h-14 bg-slate-900 rounded-2xl border border-slate-800 text-2xl text-white font-black hover:bg-brand-gold hover:text-slate-900 transition-all active:scale-90"
+                                    >-</button>
+                                    <div className="flex flex-col items-center">
+                                       <span className="text-5xl font-black text-white font-mono tracking-tighter">{tempQty}</span>
+                                       <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Unidades</span>
+                                    </div>
+                                    <button 
+                                       onClick={() => setTempQty(tempQty + 1)}
+                                       className="w-14 h-14 bg-slate-900 rounded-2xl border border-slate-800 text-2xl text-white font-black hover:bg-brand-gold hover:text-slate-900 transition-all active:scale-90"
+                                    >+</button>
+                                 </div>
+                                 
+                                 <div className="w-full pt-4 border-t border-slate-900 flex flex-col gap-4">
+                                    <div className="flex justify-between items-center text-slate-500 uppercase font-black text-[10px]">
+                                       <span>Subtotal</span>
+                                       <span className="text-white">${(selectedSvcForQty.precio * tempQty).toLocaleString()}</span>
+                                    </div>
+                                    <button 
+                                       onClick={() => executeAdd(selectedSvcForQty, tempQty)}
+                                       className="w-full py-5 bg-brand-gold text-slate-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-brand-gold/10 hover:shadow-brand-gold/20 active:scale-95 transition-all"
+                                    >
+                                      CONFIRMAR ADICIÓN
+                                    </button>
+                                 </div>
+                              </div>
                            </div>
                         </div>
                       )}

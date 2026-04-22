@@ -337,7 +337,7 @@ export const FormularioIngreso: React.FC<{
   const isTienda = idTipoOperacion === 'tienda';
 
   return (
-    <div className="bg-slate-900 overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-500 max-w-4xl mx-auto rounded-[2.5rem] border border-slate-800">
+    <div className="bg-slate-900 overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300 max-w-4xl mx-auto rounded-[2.5rem] border border-slate-800">
       <div className="bg-slate-950 p-8 border-b border-slate-800 flex items-center justify-between relative overflow-hidden">
          <div className={`absolute top-0 left-0 w-1 h-full shadow-[0_0_15px_rgba(255,255,255,0.5)] ${isLavadero ? 'bg-brand-cyan' : 'bg-brand-gold'}`}></div>
          <div className="flex items-center gap-5">
@@ -475,7 +475,7 @@ export const FormularioIngreso: React.FC<{
                           <input 
                               type="text" 
                               value={clienteNombre}
-                              onChange={(e) => { setClienteNombre(validateName(e.target.value)); setShowSearch(true); }}
+                              onChange={(e) => { setClienteNombre(validateName(e.target.value).toUpperCase()); setShowSearch(true); }}
                               onFocus={() => setShowSearch(true)}
                               placeholder="NOMBRE DEL CLIENTE"
                               className={`w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-[10px] font-black text-white focus:outline-none transition-all uppercase tracking-widest ${isTienda ? 'focus:border-brand-gold/50' : 'focus:border-brand-cyan/50'}`}
@@ -496,8 +496,8 @@ export const FormularioIngreso: React.FC<{
                           )}
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                          <input type="text" value={clienteCedula} onChange={(e) => setClienteCedula(validateNumber(e.target.value))} placeholder="CÉDULA" className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-[10px] font-black text-white font-mono focus:outline-none ${isTienda ? 'focus:border-brand-gold/30' : 'focus:border-brand-cyan/30'}`} required={isLavadero || (isTienda && pagoCredito)} />
-                          <input type="tel" value={clienteTelefono} onChange={(e) => setClienteTelefono(validateNumber(e.target.value).slice(0, 10))} placeholder="TELÉFONO" className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-[10px] font-black text-white focus:outline-none ${isTienda ? 'focus:border-brand-gold/30' : 'focus:border-brand-cyan/30'}`} required={isLavadero || (isTienda && pagoCredito)} />
+                          <input type="number" value={clienteCedula} onChange={(e) => setClienteCedula(e.target.value.toUpperCase())} placeholder="CÉDULA" className={`cyber-input-premium font-mono uppercase focus:outline-none ${isTienda ? 'focus:border-brand-gold/30' : 'focus:border-brand-cyan/30'}`} required={isLavadero || (isTienda && pagoCredito)} />
+                          <input type="number" value={clienteTelefono} onChange={(e) => setClienteTelefono(e.target.value.slice(0, 10))} placeholder="TELÉFONO" className={`cyber-input-premium focus:outline-none ${isTienda ? 'focus:border-brand-gold/30' : 'focus:border-brand-cyan/30'}`} required={isLavadero || (isTienda && pagoCredito)} />
                       </div>
                   </div>
               </div>
@@ -523,7 +523,7 @@ export const FormularioIngreso: React.FC<{
                       >
                           <option value="">-- SERVICIO --</option>
                           {services
-                              .filter(s => !s.esAdicional && (s.tipoVehiculo === tipo || s.tipoVehiculo === 'ambos'))
+                              .filter(s => (s.esPrincipal || (s.esPrincipal === undefined && !s.esAdicional)) && (s.tipoVehiculo === tipo || s.tipoVehiculo === 'ambos'))
                               .map(s => <option key={s.id} value={s.id}>{s.nombre.toUpperCase()} (${s.precio.toLocaleString()})</option>)
                           }
                       </select>

@@ -117,8 +117,8 @@ export const ClientesTerminal: React.FC = () => {
                     type="text"
                     placeholder="BUSCAR CLIENTE..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="cyber-input-premium pl-12 py-3 text-[11px] w-full sm:w-64"
+                    onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
+                    className="cyber-input-premium pl-12 py-3 text-[11px] w-full sm:w-64 uppercase"
                 />
             </div>
             <button onClick={() => setIsModalOpen(true)} className="cyber-button-primary flex items-center justify-center gap-3">
@@ -182,7 +182,7 @@ export const ClientesTerminal: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={closeForm}></div>
-          <div className="relative cyber-card w-full max-w-lg bg-slate-900 border-brand-cyan/20 shadow-2xl">
+          <div className="relative cyber-card w-full max-w-lg bg-slate-900 border-brand-cyan/20 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
             <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-gradient-to-r from-slate-900 to-slate-950">
                <h3 className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
                  <Users className="w-5 h-5 text-brand-cyan" />
@@ -191,51 +191,53 @@ export const ClientesTerminal: React.FC = () => {
                <button onClick={closeForm} className="p-2 text-slate-500 hover:text-white"><X className="w-6 h-6" /></button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div className="tactical-group">
-                <label className="cyber-label-tactical">Identificación</label>
-                <input 
-                    type="text" 
-                    value={cedula} 
-                    onChange={(e) => setCedula(validateNumber(e.target.value))} 
-                    className="cyber-input-premium font-mono" 
-                    placeholder="NÚMERO DE CÉDULA" 
-                    required 
-                />
-              </div>
-
-              <div className="tactical-group">
-                <label className="cyber-label-tactical">Información de Contacto</label>
-                <div className="space-y-4">
+            <div className="p-6 max-h-[80vh] overflow-y-auto no-scrollbar">
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="tactical-group">
+                  <label className="cyber-label-tactical">Identificación</label>
                   <input 
-                    type="text" 
-                    value={nombre} 
-                    onChange={(e) => setNombre(validateName(e.target.value))} 
-                    className="cyber-input-premium text-lg font-black" 
-                    placeholder="NOMBRE COMPLETO" 
-                    required 
+                      type="number" 
+                      value={cedula} 
+                      onChange={(e) => setCedula(e.target.value.toUpperCase())} 
+                      className="cyber-input-premium font-mono uppercase" 
+                      placeholder="NÚMERO DE CÉDULA" 
+                      required 
                   />
-                  <div className="relative group">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-brand-cyan" />
+                </div>
+
+                <div className="tactical-group">
+                  <label className="cyber-label-tactical">Información de Contacto</label>
+                  <div className="space-y-4">
                     <input 
-                        type="tel" 
-                        value={telefono} 
-                        onChange={(e) => setTelefono(validateNumber(e.target.value).slice(0, 10))} 
-                        className="cyber-input-premium pl-12" 
-                        placeholder="CELULAR (10 DÍGITOS)" 
-                        required
+                      type="text" 
+                      value={nombre} 
+                      onChange={(e) => setNombre(validateName(e.target.value).toUpperCase())} 
+                      className="cyber-input-premium text-lg font-black uppercase" 
+                      placeholder="NOMBRE COMPLETO" 
+                      required 
                     />
+                    <div className="relative group">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-600 group-focus-within:text-brand-cyan" />
+                      <input 
+                          type="number" 
+                          value={telefono} 
+                          onChange={(e) => setTelefono(e.target.value.slice(0, 10))} 
+                          className="cyber-input-premium pl-12" 
+                          placeholder="CELULAR (10 DÍGITOS)" 
+                          required
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={closeForm} className="flex-1 cyber-button-secondary uppercase">Cancelar</button>
-                <button type="submit" disabled={saving || telefono.length !== 10} className="flex-[2] cyber-button-primary py-4 uppercase">
-                  {saving ? <CyberLoader size={24} className="mx-auto" /> : <>{editingId ? 'Actualizar' : 'Guardar'}</>}
-                </button>
-              </div>
-            </form>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={closeForm} className="flex-1 cyber-button-secondary uppercase">Cancelar</button>
+                  <button type="submit" disabled={saving || telefono.length !== 10} className="flex-[2] cyber-button-primary py-4 uppercase">
+                    {saving ? <CyberLoader size={24} className="mx-auto" /> : <>{editingId ? 'Actualizar' : 'Guardar'}</>}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -243,7 +245,7 @@ export const ClientesTerminal: React.FC = () => {
       {confirmModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setConfirmModal(null)}></div>
-          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center">
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center animate-modal-entry">
             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20">
                <Trash2 className="w-8 h-8 text-red-500" />
             </div>

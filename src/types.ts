@@ -8,6 +8,7 @@ export interface Service {
   comision: number; // Porcentaje como 0.35 para el 35%
   tipoVehiculo: VehicleType | 'ambos';
   esAdicional?: boolean;
+  esPrincipal?: boolean;
   categoria: 'servicio' | 'articulo';
   stock?: number;
 }

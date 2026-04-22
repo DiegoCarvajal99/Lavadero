@@ -690,11 +690,14 @@ export const CajaModule: React.FC = () => {
                     <p className="text-[10px] text-slate-600 font-black uppercase tracking-[0.2em] mb-4">Tactical Payment Input</p>
                     <div className="relative group">
                        <input 
-                         type="number" 
-                         value={paymentInput}
-                         onChange={(e) => setPaymentInput(e.target.value)}
+                         type="text" 
+                         value={paymentInput ? Number(paymentInput).toLocaleString('es-CO') : ''}
+                         onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '');
+                            setPaymentInput(val);
+                         }}
                          placeholder="MONTO A PAGAR..."
-                         className="w-full bg-slate-900 border-2 border-slate-800 rounded-2xl px-6 py-5 text-2xl font-black text-white focus:border-brand-gold shadow-inner transition-all placeholder:text-slate-800"
+                         className="w-full bg-slate-900 border-2 border-slate-800 rounded-2xl px-6 py-5 text-2xl font-black text-white focus:border-brand-gold shadow-inner transition-all placeholder:text-slate-800 uppercase"
                        />
                        <button 
                          onClick={() => setPaymentInput(viewingCredit.totalOwed.toString())}
