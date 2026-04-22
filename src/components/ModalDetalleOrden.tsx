@@ -736,14 +736,22 @@ export const ModalDetalleOrden: React.FC<Props> = ({ order, isOpen, onClose, onP
                /* Global Balance Settlement (Yellow Primary) - Refined Compact Style */
                <div className="flex flex-col items-center gap-3">
                   <button 
-                    onClick={() => onPay(order.id!)}
-                    className="w-full max-w-sm py-3.5 px-6 rounded-2xl bg-brand-gold text-slate-950 font-black uppercase tracking-[0.15em] text-[10px] transition-all shadow-xl shadow-brand-gold/10 hover:bg-white active:scale-95 group flex items-center justify-center gap-3"
+                    onClick={async () => {
+                        if (order.pagoCredito) {
+                            const orderRef = doc(db, 'ordenes', order.id!);
+                            await updateDoc(orderRef, { estado: 'finalizado' });
+                            onClose();
+                        } else {
+                            onPay(order.id!);
+                        }
+                    }}
+                    className={`w-full max-w-sm py-3.5 px-6 rounded-2xl font-black uppercase tracking-[0.15em] text-[10px] transition-all shadow-xl group flex items-center justify-center gap-3 ${order.pagoCredito ? 'bg-brand-cyan text-slate-950 shadow-brand-cyan/20' : 'bg-brand-gold text-slate-950 shadow-brand-gold/10'} hover:bg-white active:scale-95`}
                   >
-                    <DollarSign className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    <span>{totalPagado > 0 ? 'Liquidación de Saldo Pendiente' : 'Cobrar Servicio Completo'}</span>
+                    {order.pagoCredito ? <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" /> : <DollarSign className="w-5 h-5 group-hover:scale-110 transition-transform" />}
+                    <span>{order.pagoCredito ? 'Finalizar y Entregar (Crédito)' : (totalPagado > 0 ? 'Liquidación de Saldo Pendiente' : 'Cobrar Servicio Completo')}</span>
                   </button>
                   <p className="text-[7px] font-bold text-slate-600 uppercase tracking-widest text-center opacity-70">
-                    {totalPagado > 0 ? 'Ajuste de cuentas por abonos previos' : 'Al confirmar se registra la salida del vehículo'}
+                    {order.pagoCredito ? 'El vehículo saldrá del tablero pero la deuda quedará en cartera' : (totalPagado > 0 ? 'Ajuste de cuentas por abonos previos' : 'Al confirmar se registra la salida del vehículo')}
                   </p>
                </div>
              ) : isFinished && stagedAdditions.length === 0 ? (

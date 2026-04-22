@@ -15,16 +15,17 @@ export const CardVehiculo: React.FC<Props> = ({ order, onUpdateStatus, onDelete,
   const statusStyles: Record<string, string> = {
     espera: 'border-slate-800/50 text-slate-500',
     proceso: 'border-brand-cyan/30 glow-cyan',
-    listo: 'border-brand-green/30 glow-green',
-    pagado: 'border-brand-gold/20 opacity-80 glow-gold',
+    listo: 'border-amber-500/30 glow-gold',
+    pagado: 'border-brand-green/20 opacity-80 glow-green',
+    finalizado: 'border-brand-gold/20 opacity-80 glow-gold',
   };
 
   const statusLabels: Record<string, string> = {
-    espera: 'En Cola',
-    proceso: 'Lavando',
-    listo: 'Listo p/ Entrega',
-    pagado: 'Completado',
-    finalizado: 'Operación Finalizada',
+    espera: 'En Espera',
+    proceso: 'En Proceso',
+    listo: 'Por Pagar',
+    pagado: 'Finalizado',
+    finalizado: 'Finalizado',
   };
 
   const getWhatsAppLink = () => {
@@ -72,6 +73,15 @@ export const CardVehiculo: React.FC<Props> = ({ order, onUpdateStatus, onDelete,
                  const pagado = order.montoPagado || 0;
                  const pendiente = total - pagado;
                  
+                 // CRÉDITO badge always takes priority
+                 if (order.pagoCredito) {
+                   return (
+                     <span className="px-1 py-0.5 rounded-sm bg-brand-cyan/20 text-brand-cyan text-[6px] font-black uppercase tracking-tighter border border-brand-cyan/40 animate-pulse">
+                       CRÉDITO
+                     </span>
+                   );
+                 }
+
                  if (pendiente <= 0 && pagado > 0) {
                    return (
                      <span className="px-1 py-0.5 rounded-sm bg-brand-green/20 text-brand-green text-[6px] font-black uppercase tracking-tighter border border-brand-green/30">
@@ -88,10 +98,10 @@ export const CardVehiculo: React.FC<Props> = ({ order, onUpdateStatus, onDelete,
                    );
                  }
 
-                 if (order.pagoAnticipado || order.pagoCredito) {
+                 if (order.pagoAnticipado) {
                    return (
                      <span className="px-1 py-0.5 rounded-sm bg-brand-gold/20 text-brand-gold text-[6px] font-black uppercase tracking-tighter border border-brand-gold/30">
-                       {order.pagoCredito ? 'CRÉDITO' : 'PRE-PAGO'}
+                       PRE-PAGO
                      </span>
                    );
                  }
@@ -223,14 +233,15 @@ export const CardVehiculo: React.FC<Props> = ({ order, onUpdateStatus, onDelete,
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
-                const hasBalance = order.total > (order.montoPagado || 0);
-                const nextStatus = hasBalance ? 'listo' : (order.pagoAnticipado || order.pagoCredito ? 'finalizado' : 'pagado');
+                // Credits go directly to 'finalizado' (skip POR PAGAR)
+                const nextStatus = order.pagoCredito ? 'finalizado' : (
+                  (order.total > (order.montoPagado || 0)) ? 'listo' : 
+                  (order.pagoAnticipado ? 'finalizado' : 'pagado')
+                );
                 onUpdateStatus(order.id!, nextStatus); 
               }}
-              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 transition-all group/btn ${
-                (order.total <= (order.montoPagado || 0) && (order.pagoAnticipado || order.pagoCredito)) ? 'hover:border-brand-gold hover:bg-brand-gold/20 text-brand-gold' : 'hover:border-brand-green hover:bg-brand-green/20 text-brand-green'
-              }`}
-              title={(order.total <= (order.montoPagado || 0) && (order.pagoAnticipado || order.pagoCredito)) ? 'Cierre Total' : 'Cierre Patio'}
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-amber-500 hover:bg-amber-500/20 text-amber-500 transition-all group/btn"
+              title={order.pagoCredito ? 'Finalizar (Crédito pendiente)' : 'Pasar a Por Pagar'}
             >
               <CheckCircle2 className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
               <span className="text-[8px] font-black uppercase tracking-tighter">Terminar</span>
@@ -239,12 +250,26 @@ export const CardVehiculo: React.FC<Props> = ({ order, onUpdateStatus, onDelete,
 
           {order.estado === 'listo' && (
             <button 
-              onClick={(e) => { e.stopPropagation(); onUpdateStatus(order.id!, 'pagado'); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-cyan text-slate-950 hover:bg-white transition-all shadow-[0_4px_10px_rgba(0,247,255,0.3)] group/btn"
-              title="Liquidar Caja"
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                // Credits go to 'finalizado' to stay in Cartera; paid orders go to 'pagado'
+                const nextStatus = order.pagoCredito ? 'finalizado' : 'pagado';
+                onUpdateStatus(order.id!, nextStatus); 
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all shadow-xl group/btn ${
+                order.pagoCredito 
+                  ? 'bg-brand-cyan text-slate-950 hover:bg-white shadow-brand-cyan/20' 
+                  : 'bg-brand-green text-slate-950 hover:bg-white shadow-brand-green/20'
+              }`}
+              title={order.pagoCredito ? 'Entregar (Crédito pendiente)' : 'Cobrar y Finalizar'}
             >
-              <CreditCard className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
-              <span className="text-[8px] font-black uppercase tracking-tighter">Pagar</span>
+              {order.pagoCredito 
+                ? <ShieldCheck className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
+                : <CreditCard className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
+              }
+              <span className="text-[8px] font-black uppercase tracking-tighter">
+                {order.pagoCredito ? 'Entregar' : 'Pagar'}
+              </span>
             </button>
           )}
 

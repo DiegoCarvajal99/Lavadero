@@ -79,7 +79,10 @@ export const CajaModule: React.FC = () => {
       const snapshotCredits = await getDocs(qCredits);
       const creditOrders = snapshotCredits.docs
         .map(doc => ({ id: doc.id, ...doc.data() } as Order))
-        .filter(o => o.estado !== 'pagado');
+        .filter(o => {
+          const balance = (Number(o.total) || 0) - (Number(o.montoPagado) || 0);
+          return !['pagado'].includes(o.estado) && balance > 0;
+        });
       
       // Group Credits by Client
       const groupedCredits: Record<string, ClientCredit> = creditOrders.reduce((acc: any, curr) => {
@@ -132,7 +135,15 @@ export const CajaModule: React.FC = () => {
         orders: []
       };
     }
-    acc[curr.lavadorNombre].totalProduction += curr.total || 0;
+    // Calculate only service-related production (Base + Service Additions)
+    // Formula: Total - Shop Articles (Articulos)
+    const shopArticlesTotal = (curr.adicionales || [])
+        .filter((a: any) => a.categoria === 'articulo')
+        .reduce((sum: number, a: any) => sum + (a.precio * (a.cantidad || 1)), 0);
+
+    const serviceProduction = (curr.total || 0) - shopArticlesTotal;
+
+    acc[curr.lavadorNombre].totalProduction += serviceProduction;
     acc[curr.lavadorNombre].totalCommission += curr.comisionMonto || 0;
     acc[curr.lavadorNombre].count += 1;
     acc[curr.lavadorNombre].orders.push(curr);
@@ -169,10 +180,11 @@ export const CajaModule: React.FC = () => {
             const balance = orderTotal - alreadyPaid;
 
             if (remainingPayment >= balance) {
-              // Full payment for this order
+              // Full payment for this order - mark as pagado
               batch.update(orderRef, { 
                 estado: 'pagado',
-                montoPagado: orderTotal 
+                montoPagado: orderTotal,
+                pagoCredito: false
               });
               remainingPayment -= balance;
             } else {
@@ -590,29 +602,47 @@ export const CajaModule: React.FC = () => {
              </div>
              <div className="p-6 max-h-[50vh] overflow-y-auto no-scrollbar">
                 <table className="w-full text-left">
-                    <thead className="text-[10px] text-slate-500 uppercase border-b border-slate-800">
-                        <tr><th className="p-3">Vehículo</th><th className="p-3">Producto / Servicio</th><th className="p-3 text-right">Comisión</th></tr>
+                    <thead className="text-[9px] font-black text-slate-600 uppercase border-b border-slate-800">
+                        <tr>
+                            <th className="p-3">Vehículo</th>
+                            <th className="p-3">Servicios Realizados</th>
+                            <th className="p-3 text-right">Producción</th>
+                            <th className="p-3 text-right">Comisión</th>
+                        </tr>
                     </thead>
-                    <tbody>
-                        {viewingWasher.orders.map((o, idx) => (
-                            <tr key={idx} className="border-b border-slate-900/50 text-sm">
-                                <td className="p-3 flex items-center gap-2 font-black text-white">
-                                    {o.esTienda ? <ShoppingBag size={14} className="text-brand-gold" /> : (o.tipo === 'carro' ? <Car size={14}/> : <MotorcycleIcon size={14}/>)} 
-                                    {o.placa}
-                                </td>
-                                <td className="p-3">
-                                    <div className="flex flex-col">
-                                        <span className="text-slate-200 font-black uppercase text-[11px]">{o.servicioNombre}</span>
-                                        {o.adicionales?.filter(a => a.categoria === 'servicio').map((a, i) => (
-                                            <span key={i} className="text-[9px] text-brand-cyan font-bold uppercase">
-                                                + {a.nombre} {a.cantidad > 1 ? `(x${a.cantidad})` : ''}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </td>
-                                <td className="p-3 text-right text-brand-gold font-black">${o.comisionMonto.toLocaleString()}</td>
-                            </tr>
-                        ))}
+                    <tbody className="divide-y divide-slate-900">
+                        {viewingWasher.orders.sort((a,b) => {
+                            const timeA = a.timestamp?.seconds || a.timestamp || 0;
+                            const timeB = b.timestamp?.seconds || b.timestamp || 0;
+                            return timeB - timeA;
+                        }).map((o, idx) => {
+                            const shopArticlesTotal = (o.adicionales || [])
+                                .filter(a => a.categoria === 'articulo')
+                                .reduce((sum, a) => sum + (a.precio * (a.cantidad || 1)), 0);
+                            
+                            const orderProd = (o.total || 0) - shopArticlesTotal;
+                            
+                            return (
+                                <tr key={idx} className="hover:bg-slate-900/40 transition-colors">
+                                    <td className="p-3 font-black text-white uppercase tracking-tighter flex items-center gap-2">
+                                        {o.esTienda ? <ShoppingBag size={14} className="text-brand-gold" /> : (o.tipo === 'carro' ? <Car size={14}/> : <MotorcycleIcon size={14}/>)} 
+                                        {o.placa}
+                                    </td>
+                                    <td className="p-3">
+                                        <div className="flex flex-col">
+                                            <span className="text-slate-200 font-black uppercase text-[11px]">{o.servicioNombre}</span>
+                                            {o.adicionales?.filter(a => a.categoria === 'servicio').map((a, i) => (
+                                                <span key={i} className="text-[9px] text-brand-cyan font-bold uppercase">
+                                                    + {a.nombre} {a.cantidad > 1 ? `(x${a.cantidad})` : ''}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </td>
+                                    <td className="p-3 text-right text-slate-400 font-mono text-xs">${orderProd.toLocaleString()}</td>
+                                    <td className="p-3 text-right text-brand-gold font-black">${o.comisionMonto.toLocaleString()}</td>
+                                </tr>
+                            )
+                        })}
                     </tbody>
                 </table>
              </div>

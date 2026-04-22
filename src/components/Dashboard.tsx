@@ -99,14 +99,15 @@ export const Dashboard: React.FC = () => {
     let targetStatus = newStatus;
     const isSettled = (order.total || 0) <= (order.montoPagado || 0) || order.pagoCredito;
     
-    if (newStatus === 'listo' && isSettled) {
-      targetStatus = (order.pagoCredito || order.pagoAnticipado) ? 'finalizado' : 'pagado';
+    if (newStatus === 'listo' && isSettled && !order.pagoCredito) {
+      targetStatus = order.pagoAnticipado ? 'finalizado' : 'pagado';
     }
 
     const orderRef = doc(db, 'ordenes', id);
     const updates: any = { estado: targetStatus };
     
-    if (targetStatus === 'pagado' || targetStatus === 'finalizado') {
+    // Only force montoPagado for NON-credit orders
+    if ((targetStatus === 'pagado' || targetStatus === 'finalizado') && !order.pagoCredito) {
       updates.montoPagado = order.total;
       updates.servicioPrincipalPagado = true;
       if (order.adicionales) {
@@ -176,6 +177,13 @@ export const Dashboard: React.FC = () => {
   const formatDateDisplay = (date: Date) => {
     return date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
   };
+
+  const columnConfig = [
+    { key: 'espera',    label: 'EN ESPERA' },
+    { key: 'proceso',   label: 'EN PROCESO' },
+    { key: 'listo',     label: 'POR PAGAR' },
+    { key: 'finalizado', label: 'FINALIZADO' },
+  ];
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto select-none animate-panel-entry">
@@ -270,14 +278,16 @@ export const Dashboard: React.FC = () => {
       <div key={viewMode} className="animate-panel-entry">
         {viewMode === 'lavadero' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {['espera', 'proceso', 'listo', 'pagado'].map(col => (
-             <div key={col} className="space-y-4">
+          {columnConfig.map(({ key, label }) => (
+             <div key={key} className="space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3 px-1">
-                   <h3 className="font-black text-white text-[9px] tracking-widest uppercase opacity-60">{col}</h3>
-                   <span className="text-[9px] font-black text-slate-700 bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-900">{getColOrders(col === 'pagado' ? 'pagado' : col).length}</span>
+                   <h3 className="font-black text-white text-[9px] tracking-widest uppercase opacity-60">{label}</h3>
+                   <span className="text-[9px] font-black text-slate-700 bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-900">
+                     {key === 'finalizado' ? filteredOrders.filter(o => o.estado === 'pagado' || o.estado === 'finalizado').length : getColOrders(key).length}
+                   </span>
                 </div>
                 <div className="space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar pt-2">
-                   {filteredOrders.filter(o => col === 'pagado' ? (o.estado === 'pagado' || o.estado === 'finalizado') : o.estado === col).map(order => (
+                   {filteredOrders.filter(o => key === 'finalizado' ? (o.estado === 'pagado' || o.estado === 'finalizado') : o.estado === key).map(order => (
                       <CardVehiculo key={order.id} order={order} onUpdateStatus={updateStatus} onDelete={id => setOrderToDelete(id)} onEdit={handleEdit => { setEditingOrder(order); setIsEntryModalOpen(true); }} onClick={() => setSelectedDetailOrder(order)} />
                    ))}
                 </div>
